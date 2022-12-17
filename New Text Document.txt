@@ -1,0 +1,25 @@
+def exists(something, lista):
+    for element in lista:
+        if element == something:
+            return True
+
+username_list = []
+ime_list = []
+prezime_list = []
+jmbg = []
+email = []
+username_list.append('nikola123')
+ime_list.append('Nikola')
+prezime_list.append('Nikolic')
+jmbg.append(1234)
+email.append('nikolanikolic@gmail.com')
+username_list.append('pavleggez')
+ime_list.append('Pavle')
+prezime_list.append('Pavlovic')
+jmbg.append(4567)
+email.append('pavle.pavlovic8@gmail.com')
+username_list.append('alomilos')
+ime_list.append('Milos')
+prezime_list.append('Milosevic')
+jmbg.append(3956)
+email.append('milos486@gmail.com')
