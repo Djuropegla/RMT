@@ -62,7 +62,7 @@ def recieve_choice(client, address):
                 if max_karata != 0:
                     if ((max_karata-int(unos))<=0):
                         rezervisi(max_karata)
-                        client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete({max_karata})!'.encode(FORMAT))
+                        client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
                         print(f'{address} je rezervisao {max_karata} karte! Broj preostalih karata je {BROJ_KARATA}.')
                         max_karata = 0                    
                     else:
