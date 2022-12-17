@@ -100,7 +100,6 @@ def auth(client, address):
         if check == False:
             print("POGRESNI KREDENCIJALI")
             client.close()
-            client.close()
 
 
     else:
