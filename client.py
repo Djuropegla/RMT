@@ -78,7 +78,7 @@ def meni():
     global RESET
     client.send('MAX_TICKETS'.encode(FORMAT))
     while RESET:
-        choice = f'{input()}'
+        choice = input().upper()
         # choice = f'{input("Vas izbor: ")}'
         choice = choice.rstrip()
         if choice.upper() == 'LIST':

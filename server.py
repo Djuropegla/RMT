@@ -1,5 +1,6 @@
 import threading
 import socket
+import time
 
 host = '127.0.0.1'
 port = 9898
@@ -79,7 +80,8 @@ def recieve_choice(client, address):
                 if max_karata != 0:
                     client.send((('MAX_TICKETS')+(str(max_karata))).encode(FORMAT))
                 else:
-                    client.send('ANNRezervisali ste maksimalan broj karata!'.encode(FORMAT))
+                    time.sleep(0.2)
+                    client.send((('MAX_TICKETS')+(str(0))).encode(FORMAT))
 
     except:
         print(f'{str(address)} se diskonektovao!')
