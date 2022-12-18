@@ -7,10 +7,13 @@ port = 9898
 FORMAT = 'utf-8'
 
 BROJ_KARATA = 20
+BROJ_VIP_KARATA = 5
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
 server.listen()
+
+
 
 clients = []
 
@@ -44,6 +47,11 @@ def rezervisi(br_karata):
     global BROJ_KARATA
     BROJ_KARATA = BROJ_KARATA - br_karata
 
+def rezervisi_vip(br_karata):
+    br_karata = int(br_karata)
+    global BROJ_VIP_KARATA
+    BROJ_VIP_KARATA = BROJ_VIP_KARATA - br_karata
+
 def broadcast(message):
     msg = 'BROADCAST'+message
     for client in clients:
@@ -51,7 +59,7 @@ def broadcast(message):
 
 def recieve_choice(client, address):
     max_karata = 4
-    client.send('GREETINGIzaberite neku od opcija\nLIST - broj preostalih karata\nRESERVE - rezervisati kartu\nIZLAZ - za izlaz iz aplikacije'.encode(FORMAT))
+    client.send('GREETINGIzaberite neku od opcija\nLIST - broj preostalih karata\nRESERVE - rezervisati kartu\nRESERVE VIP - rezervisati kartu\nIZLAZ - za izlaz iz aplikacije'.encode(FORMAT))
 
     try:
         while True:
@@ -59,19 +67,39 @@ def recieve_choice(client, address):
             if message == 'LIST':
                 client.send(f'LISTPreostalo je jos {BROJ_KARATA} slobodnih karata.'.encode(FORMAT))
             elif message[:7] == 'RESERVE':
-                unos = message[7:]
-                if max_karata != 0:
-                    if ((max_karata-int(unos))<=0):
+                unos = int(message[7:])
+                if ((max_karata != 0) and ((BROJ_KARATA > 0) and (BROJ_KARATA - unos >= 0))):
+                    if ((max_karata-unos)<=0):
                         rezervisi(max_karata)
                         client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
                         print(f'{address} je rezervisao {max_karata} karte! Broj preostalih karata je {BROJ_KARATA}.')
+                        broadcast(f'Preostalo je jos {BROJ_KARATA} karata!')
                         max_karata = 0                    
                     else:
                         rezervisi(unos)
                         max_karata -= int(unos)
                         print(f'{address} je rezervisao {unos} karte! Broj preostalih karata je {BROJ_KARATA}.')
-                broadcast(f'Preostalo je jos {BROJ_KARATA} karata!')
-                print(len(clients))
+                        broadcast(f'Preostalo je jos {BROJ_KARATA} karata!')
+                else:
+                    client.send(f'ANNRezervisan je maksimalan broj karata!'.encode(FORMAT))
+            elif message[:11] == 'VIP_RESERVE':
+                print("primljeno")
+                print(message)
+                unos = int(message[11:])
+                if ((max_karata != 0) and ((BROJ_VIP_KARATA > 0) and (BROJ_VIP_KARATA - unos >= 0))):
+                    if ((max_karata-unos)<=0):
+                        rezervisi_vip(max_karata)
+                        client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
+                        print(f'{address} je rezervisao {max_karata} vip karte! Broj preostalih vip karata je {BROJ_VIP_KARATA}.')
+                        broadcast(f'Preostalo je jos {BROJ_VIP_KARATA} vip karata!')
+                        max_karata = 0                    
+                    else:
+                        rezervisi_vip(unos)
+                        max_karata -= int(unos)
+                        print(f'{address} je rezervisao {unos} vip karte! Broj preostalih vip karata je {BROJ_VIP_KARATA}.')
+                        broadcast(f'Preostalo je jos {BROJ_VIP_KARATA} vip karata!')
+                else:
+                    client.send(f'ANNRezervisan je maksimalan broj karata!'.encode(FORMAT))
             elif message == 'IZLAZ':
                 print(f'{str(address)} se diskonektovao!')
                 client.close()
@@ -83,7 +111,8 @@ def recieve_choice(client, address):
                     time.sleep(0.2)
                     client.send((('MAX_TICKETS')+(str(0))).encode(FORMAT))
 
-    except:
+    except Exception as e:
+        print(e)
         print(f'{str(address)} se diskonektovao!')
         client.close()
 

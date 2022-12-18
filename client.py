@@ -4,6 +4,7 @@ import socket
 FORMAT = 'utf-8'    
 RESET = True
 MAX_TICKETS = int()
+MAX_VIP_TICKETS = int()
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 9898))
@@ -52,6 +53,8 @@ def recieve():
 
             if msg[:8] == 'GREETING':
                 print(msg[8:])
+            elif msg[:11] == 'MAX_TICKETS':
+                MAX_TICKETS = int(msg[11:])
             elif msg[:4] == 'LIST':
                 print(msg[4:])
             elif msg[:7] == 'RESERVE':
@@ -60,19 +63,11 @@ def recieve():
                 print(msg[9:])
             elif msg[:3] == 'ANN':
                 print(msg[3:])
-            elif msg[:11] == 'MAX_TICKETS':
-                MAX_TICKETS = int(msg[11:])
         except:
             print("Veza sa serverom je prekinuta")
             client.close()
             input()
             break
-
-# def list(izbor):
-#     client.send(izbor.encode(FORMAT))
-
-# def reserve(izbor):
-#     client.send(izbor.encode(FORMAT))
 
 def meni():
     global RESET
@@ -81,12 +76,10 @@ def meni():
         choice = input().upper()
         # choice = f'{input("Vas izbor: ")}'
         choice = choice.rstrip()
-        if choice.upper() == 'LIST':
-            # list(choice)  
+        if choice.upper() == 'LIST': 
             client.send(choice.encode(FORMAT))
         elif choice.upper() == 'RESERVE':
-            # br = rezervacija()
-            # reserve(choice+str(br))
+            client.send('MAX_TICKETS'.encode(FORMAT))
             print(f'Unesite broj karata koje zelite da rezervisete (mozete rezervisati {MAX_TICKETS}):')
             while True:
                 try:
@@ -95,6 +88,17 @@ def meni():
                 except:
                     print('Mozete unositi samo brojeve!')
             client.send((choice+str(br)).encode(FORMAT))
+            client.send('MAX_TICKETS'.encode(FORMAT))
+        elif choice.upper() == 'RESERVE VIP':
+            client.send('MAX_TICKETS'.encode(FORMAT))
+            print(f'Unesite broj karata koje zelite da rezervisete (mozete rezervisati {MAX_TICKETS}):')
+            while True:
+                try:
+                    br = int(input())
+                    break
+                except:
+                    print('Mozete unositi samo brojeve!')
+            client.send((('VIP_RESERVE')+str(br)).encode(FORMAT))
             client.send('MAX_TICKETS'.encode(FORMAT))
         elif choice.upper() == 'IZLAZ':
             RESET = False
@@ -119,6 +123,7 @@ def auth_client():
                 while True:
                     try:
                         message = input().upper()
+                        message = message.rstrip()
                         if message == 'REGISTER':
                             client.send('REG'.encode(FORMAT))
                             break
@@ -167,6 +172,7 @@ def auth_client():
                 while True:
                     try:
                         message = input()
+                        message = message.rstrip()
                         if ((len(message) > 0) and (len(message) < 20)):
                             client.send(('NAME'+message).encode(FORMAT))
                             break
@@ -181,6 +187,7 @@ def auth_client():
                 while True:
                     try:
                         message = input()
+                        message = message.rstrip()
                         if ((len(message) > 0) and (len(message) < 20)):
                             client.send(('L_NAME'+message).encode(FORMAT))
                             break
@@ -215,6 +222,7 @@ def auth_client():
                 while True:
                     try:
                         message = input()
+                        message = message.rstrip()
                         if ((len(message) > 0) and (len(message) < 20)):
                             client.send(('EMAIL'+message).encode(FORMAT))
                             break
