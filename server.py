@@ -130,6 +130,13 @@ def login_provjera(username, password):
         result = False
     return result
 
+def check_message(client,message,br_slova):
+    if len(message) <= br_slova:
+        client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
+        client.close()
+        return True
+    return False
+
 def check_username(username_temp):
     for username in username_list:
         if username == username_temp:
@@ -154,10 +161,12 @@ def auth(client, address):
                 client.send('REG_U_NAMEUnesite Vase korisnicko ime:'.encode(FORMAT))
             
             if message_rcvd[:6] == 'U_NAME':
-                if len(message_rcvd) == 6:
-                    client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                    client.close()
+                if check_message(client,message_rcvd,6):
                     return
+                # if len(message_rcvd) == 6:
+                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
+                #     client.close()
+                #     return
                 if check_username(message_rcvd[6:]):
                     client.send('ANNIzabrali ste postojece korisnicko ime!'.encode(FORMAT))
                     client.send('REG_U_NAMEUnesite drugacije korisnicko ime:'.encode(FORMAT))
@@ -167,37 +176,45 @@ def auth(client, address):
                     client.send('REG_PASSWORDUnesite Vasu sifru:'.encode(FORMAT))
 
             if message_rcvd[:8] == 'PASSWORD':
-                if len(message_rcvd) == 8:
-                    client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                    client.close()
+                if check_message(client,message_rcvd,8):
                     return
+                # if len(message_rcvd) == 8:
+                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
+                #     client.close()
+                #     return
                 print('SUCCESS PASSWORD')
                 password_temp = message_rcvd[8:]
                 client.send('REG_NAMEUnesite Vase ime:'.encode(FORMAT))
             
             if message_rcvd[:4] == 'NAME':
-                if len(message_rcvd) == 4:
-                    client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                    client.close()
+                if check_message(client,message_rcvd,4):
                     return
+                # if len(message_rcvd) == 4:
+                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
+                #     client.close()
+                #     return
                 print('SUCCESS NAME')
                 ime_temp = message_rcvd[4:]
                 client.send('REG_L_NAMEUnesite Vase prezime:'.encode(FORMAT))
 
             if message_rcvd[:6] == 'L_NAME':
-                if len(message_rcvd) == 6:
-                    client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                    client.close()
+                if check_message(client,message_rcvd,6):
                     return
+                # if len(message_rcvd) == 6:
+                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
+                #     client.close()
+                #     return
                 print('SUCCESS L_NAME')
                 prezime_temp = message_rcvd[6:]
                 client.send('REG_JMBGUnesite Vas jmbg:'.encode(FORMAT))
             
             if message_rcvd[:4] == 'JMBG':
-                if len(message_rcvd) == 4:
-                    client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                    client.close()
+                if check_message(client,message_rcvd,4):
                     return
+                # if len(message_rcvd) == 4:
+                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
+                #     client.close()
+                #     return
                 print('SUCCESS JMBG')
                 jmbg_temp = int(message_rcvd[4:])
                 # print(jmbg_temp)
@@ -205,10 +222,12 @@ def auth(client, address):
                 client.send('REG_EMAILUnesite Vasu e-mail adresu:'.encode(FORMAT))
 
             if message_rcvd[:5] == 'EMAIL':
-                if len(message_rcvd) == 5:
-                    client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                    client.close()
+                if check_message(client,message_rcvd,5):
                     return
+                # if len(message_rcvd) == 5:
+                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
+                #     client.close()
+                #     return
                 print('SUCCESS EMAIL')
                 email_temp = message_rcvd[5:]
                 client.send('ANNUspesno ste se registrovali na server!'.encode(FORMAT))

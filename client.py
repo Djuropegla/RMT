@@ -252,7 +252,6 @@ def auth_client():
         except:
             print("Veza sa serverom je prekinuta")
             client.close()
-            thread_dead = True
             input()
             break
     if auth_complete:
