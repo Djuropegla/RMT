@@ -144,7 +144,7 @@ def auth_client():
                 while True:
                     try:
                         message = input()
-                        if ((len(message) > 0) and (len(message) < 20)):
+                        if ((len(message) > 2) and (len(message) < 20)):
                             client.send(('U_NAME'+message).encode(FORMAT))
                             break
                         else:
@@ -158,7 +158,7 @@ def auth_client():
                 while True:
                     try:
                         message = input()
-                        if ((len(message) > 0) and (len(message) < 20)):
+                        if ((len(message) > 2) and (len(message) < 20)):
                             client.send(('PASSWORD'+message).encode(FORMAT))
                             break
                         else:
@@ -173,7 +173,7 @@ def auth_client():
                     try:
                         message = input()
                         message = message.rstrip()
-                        if ((len(message) > 0) and (len(message) < 20)):
+                        if ((len(message) > 2) and (len(message) < 20)):
                             client.send(('NAME'+message).encode(FORMAT))
                             break
                         else:
@@ -188,7 +188,7 @@ def auth_client():
                     try:
                         message = input()
                         message = message.rstrip()
-                        if ((len(message) > 0) and (len(message) < 20)):
+                        if ((len(message) > 2) and (len(message) < 20)):
                             client.send(('L_NAME'+message).encode(FORMAT))
                             break
                         else:
@@ -223,7 +223,7 @@ def auth_client():
                     try:
                         message = input()
                         message = message.rstrip()
-                        if ((len(message) > 0) and (len(message) < 20)):
+                        if ((len(message) > 2) and (len(message) < 20)):
                             client.send(('EMAIL'+message).encode(FORMAT))
                             break
                         else:
@@ -234,7 +234,7 @@ def auth_client():
 
             if message_rcvd[:12] == 'AUTH_SUCCESS':
                 # print(message_rcvd[12:])
-                print("EVE GA NA KRAJU")
+                # print("EVE GA NA KRAJU")
                 auth_complete = True
                 break
 

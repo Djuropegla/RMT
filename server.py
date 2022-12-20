@@ -1,13 +1,11 @@
 import threading
 import socket
 import time
+from db import *
 
 host = '127.0.0.1'
 port = 9898
 FORMAT = 'utf-8'
-
-BROJ_KARATA = 20
-BROJ_VIP_KARATA = 5
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
@@ -44,60 +42,83 @@ email_list.append('milos486@gmail.com')
 
 def rezervisi(br_karata):
     br_karata = int(br_karata)
-    global BROJ_KARATA
-    BROJ_KARATA = BROJ_KARATA - br_karata
+    global MAX_BROJ_KARATA
+    MAX_BROJ_KARATA = MAX_BROJ_KARATA - br_karata
 
 def rezervisi_vip(br_karata):
     br_karata = int(br_karata)
-    global BROJ_VIP_KARATA
-    BROJ_VIP_KARATA = BROJ_VIP_KARATA - br_karata
+    global MAX_BROJ_VIP_KARATA
+    MAX_BROJ_VIP_KARATA = MAX_BROJ_VIP_KARATA - br_karata
 
 def broadcast(message):
     msg = 'BROADCAST'+message
     for client in clients:
         client.send(msg.encode(FORMAT))
 
-def recieve_choice(client, address):
-    max_karata = 4
+# def get_all_tickets():
+#     return int(MAX_BROJ_KARATA-get_all_tickets())
+
+# def get_all_vip_tickets():
+#     return MAX_BROJ_VIP_KARATA - get_all_vip_tickets()
+
+
+def recieve_choice(client, address, username):
+    max_karata = 4 - get_tickets_by_user(username)
     client.send('GREETINGIzaberite neku od opcija\nLIST - broj preostalih karata\nRESERVE - rezervisati kartu\nRESERVE VIP - rezervisati kartu\nIZLAZ - za izlaz iz aplikacije'.encode(FORMAT))
 
     try:
         while True:
             message = (client.recv(1024).decode(FORMAT)).upper()
             if message == 'LIST':
-                client.send(f'LISTPreostalo je jos {BROJ_KARATA} slobodnih karata.'.encode(FORMAT))
+                client.send(f'LISTPreostalo je jos {get_all_tickets()} slobodnih obicnih karata kao i {get_all_vip_tickets()} vip karata.'.encode(FORMAT))
             elif message[:7] == 'RESERVE':
                 unos = int(message[7:])
-                if ((max_karata != 0) and ((BROJ_KARATA > 0) and (BROJ_KARATA - unos >= 0))):
+                if ((max_karata != 0) and ((get_all_tickets())> 0) and (get_all_tickets()) - unos >= 0):
                     if ((max_karata-unos)<=0):
-                        rezervisi(max_karata)
+                        if(((get_all_tickets())-max_karata)<=0):
+                            rezervisi(get_all_tickets())
+                            update_tickets_by_user(get_all_tickets(), username)
+                        else:
+                            rezervisi(max_karata)
+                            update_tickets_by_user(max_karata, username)
                         client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
-                        print(f'{address} je rezervisao {max_karata} karte! Broj preostalih karata je {BROJ_KARATA}.')
-                        broadcast(f'Preostalo je jos {BROJ_KARATA} karata!')
-                        max_karata = 0                    
+                        print(f'{address} je rezervisao {max_karata} karte! Broj preostalih karata je {get_all_tickets()}.')
+                        broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
+                        max_karata = 0
+                    elif(get_all_tickets()==0):
+                        client.send(f'ANNNema slobodnih karata!'.encode(FORMAT))                    
                     else:
                         rezervisi(unos)
+                        update_tickets_by_user(unos, username)
                         max_karata -= int(unos)
-                        print(f'{address} je rezervisao {unos} karte! Broj preostalih karata je {BROJ_KARATA}.')
-                        broadcast(f'Preostalo je jos {BROJ_KARATA} karata!')
+                        print(f'{address} je rezervisao {unos} karte! Broj preostalih karata je {get_all_tickets()}.')
+                        broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
                 else:
                     client.send(f'ANNRezervisan je maksimalan broj karata!'.encode(FORMAT))
             elif message[:11] == 'VIP_RESERVE':
                 print("primljeno")
                 print(message)
                 unos = int(message[11:])
-                if ((max_karata != 0) and ((BROJ_VIP_KARATA > 0) and (BROJ_VIP_KARATA - unos >= 0))):
+                if ((max_karata != 0) and (((get_all_vip_tickets()) > 0) and ((get_all_vip_tickets()) - unos >= 0))):
                     if ((max_karata-unos)<=0):
-                        rezervisi_vip(max_karata)
+                        if(((get_all_vip_tickets())-max_karata)<=0):
+                            rezervisi((get_all_vip_tickets()))
+                            update_vip_tickets_by_user((get_all_vip_tickets()), username)
+                        else:
+                            rezervisi(max_karata)
+                            update_vip_tickets_by_user(max_karata, username)
                         client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
-                        print(f'{address} je rezervisao {max_karata} vip karte! Broj preostalih vip karata je {BROJ_VIP_KARATA}.')
-                        broadcast(f'Preostalo je jos {BROJ_VIP_KARATA} vip karata!')
-                        max_karata = 0                    
+                        print(f'{address} je rezervisao {max_karata} vip karte! Broj preostalih vip karata je {get_all_vip_tickets()}.')
+                        broadcast(f'Preostalo je jos {get_all_vip_tickets()} vip karata!')
+                        max_karata = 0 
+                    elif(get_all_vip_tickets()==0):
+                        client.send(f'ANNNema slobodnih vip karata!'.encode(FORMAT))                      
                     else:
                         rezervisi_vip(unos)
+                        update_vip_tickets_by_user(unos, username)
                         max_karata -= int(unos)
-                        print(f'{address} je rezervisao {unos} vip karte! Broj preostalih vip karata je {BROJ_VIP_KARATA}.')
-                        broadcast(f'Preostalo je jos {BROJ_VIP_KARATA} vip karata!')
+                        print(f'{address} je rezervisao {unos} vip karte! Broj preostalih vip karata je {get_all_vip_tickets()}.')
+                        broadcast(f'Preostalo je jos {get_all_vip_tickets()} vip karata!')
                 else:
                     client.send(f'ANNRezervisan je maksimalan broj karata!'.encode(FORMAT))
             elif message == 'IZLAZ':
@@ -163,10 +184,6 @@ def auth(client, address):
             if message_rcvd[:6] == 'U_NAME':
                 if check_message(client,message_rcvd,6):
                     return
-                # if len(message_rcvd) == 6:
-                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                #     client.close()
-                #     return
                 if check_username(message_rcvd[6:]):
                     client.send('ANNIzabrali ste postojece korisnicko ime!'.encode(FORMAT))
                     client.send('REG_U_NAMEUnesite drugacije korisnicko ime:'.encode(FORMAT))
@@ -178,10 +195,6 @@ def auth(client, address):
             if message_rcvd[:8] == 'PASSWORD':
                 if check_message(client,message_rcvd,8):
                     return
-                # if len(message_rcvd) == 8:
-                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                #     client.close()
-                #     return
                 print('SUCCESS PASSWORD')
                 password_temp = message_rcvd[8:]
                 client.send('REG_NAMEUnesite Vase ime:'.encode(FORMAT))
@@ -189,10 +202,6 @@ def auth(client, address):
             if message_rcvd[:4] == 'NAME':
                 if check_message(client,message_rcvd,4):
                     return
-                # if len(message_rcvd) == 4:
-                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                #     client.close()
-                #     return
                 print('SUCCESS NAME')
                 ime_temp = message_rcvd[4:]
                 client.send('REG_L_NAMEUnesite Vase prezime:'.encode(FORMAT))
@@ -200,10 +209,6 @@ def auth(client, address):
             if message_rcvd[:6] == 'L_NAME':
                 if check_message(client,message_rcvd,6):
                     return
-                # if len(message_rcvd) == 6:
-                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                #     client.close()
-                #     return
                 print('SUCCESS L_NAME')
                 prezime_temp = message_rcvd[6:]
                 client.send('REG_JMBGUnesite Vas jmbg:'.encode(FORMAT))
@@ -211,37 +216,29 @@ def auth(client, address):
             if message_rcvd[:4] == 'JMBG':
                 if check_message(client,message_rcvd,4):
                     return
-                # if len(message_rcvd) == 4:
-                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                #     client.close()
-                #     return
                 print('SUCCESS JMBG')
                 jmbg_temp = int(message_rcvd[4:])
-                # print(jmbg_temp)
-                # print(type(jmbg_temp))
                 client.send('REG_EMAILUnesite Vasu e-mail adresu:'.encode(FORMAT))
 
             if message_rcvd[:5] == 'EMAIL':
                 if check_message(client,message_rcvd,5):
                     return
-                # if len(message_rcvd) == 5:
-                #     client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
-                #     client.close()
-                #     return
                 print('SUCCESS EMAIL')
                 email_temp = message_rcvd[5:]
                 client.send('ANNUspesno ste se registrovali na server!'.encode(FORMAT))
                 client.send('AUTH_SUCCESS'.encode(FORMAT))
                 auth_complete = True
+                insert_new_user((username_temp, password_temp, ime_temp, prezime_temp, jmbg_temp, email_temp, 0, 0))
                 break
 
-        except:
+        except Exception as e:
+            print(e)
             print(f'{str(address)} se diskonektovao!')
             client.close()
             return
 
     if auth_complete:
-        recieve_thread = threading.Thread(target=recieve_choice, args=(client, address))
+        recieve_thread = threading.Thread(target=recieve_choice, args=(client, address, username_temp))
         recieve_thread.start()
 
 def connection():
@@ -251,12 +248,6 @@ def connection():
         print(f'Uspjesno povezan sa {str(address)}')
         auth_thread = threading.Thread(target=auth, args=(client, address))
         auth_thread.start()
-
-
-
-
-
-
 
 print("Server is litening...")
 # registracija_thread = threading.Thread(target=registracija)
