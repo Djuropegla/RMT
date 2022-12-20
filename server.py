@@ -64,7 +64,7 @@ def broadcast(message):
 
 def recieve_choice(client, address, username):
     max_karata = 4 - get_tickets_by_user(username)
-    client.send('ANNIzaberite neku od opcija\nLIST - broj preostalih karata\nRESERVE - rezervisati kartu\nRESERVE VIP - rezervisati kartu\nIZLAZ - za izlaz iz aplikacije'.encode(FORMAT))
+    client.send('ANNIzaberite neku od opcija\nLIST - broj preostalih karata\nRESERVE - rezervisati kartu\nRESERVE VIP - rezervisati kartu\nCANCEL TICKETS - otkazati kartu\nCANCEL VIP\nIZLAZ - za izlaz iz aplikacije'.encode(FORMAT))
 
     try:
         while True:
@@ -76,10 +76,10 @@ def recieve_choice(client, address, username):
                 if ((max_karata != 0) and ((get_all_tickets())> 0) and (get_all_tickets()) - unos >= 0):
                     if ((max_karata-unos)<=0):
                         if(((get_all_tickets())-max_karata)<=0):
-                            rezervisi(get_all_tickets())
+                            # rezervisi(get_all_tickets())
                             update_tickets_by_user(get_all_tickets(), username)
                         else:
-                            rezervisi(max_karata)
+                            # rezervisi(max_karata)
                             update_tickets_by_user(max_karata, username)
                         client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
                         print(f'{address} je rezervisao {max_karata} karte! Broj preostalih karata je {get_all_tickets()}.')
@@ -88,24 +88,22 @@ def recieve_choice(client, address, username):
                     elif(get_all_tickets()==0):
                         client.send(f'ANNNema slobodnih karata!'.encode(FORMAT))                    
                     else:
-                        rezervisi(unos)
+                        # rezervisi(unos)
                         update_tickets_by_user(unos, username)
-                        max_karata -= int(unos)
+                        max_karata -= unos
                         print(f'{address} je rezervisao {unos} karte! Broj preostalih karata je {get_all_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
                 else:
                     client.send(f'ANNRezervisan je maksimalan broj karata!'.encode(FORMAT))
             elif message[:11] == 'VIP_RESERVE':
-                print("primljeno")
-                print(message)
                 unos = int(message[11:])
                 if ((max_karata != 0) and (((get_all_vip_tickets()) > 0) and ((get_all_vip_tickets()) - unos >= 0))):
                     if ((max_karata-unos)<=0):
                         if(((get_all_vip_tickets())-max_karata)<=0):
-                            rezervisi((get_all_vip_tickets()))
+                            # rezervisi((get_all_vip_tickets()))
                             update_vip_tickets_by_user((get_all_vip_tickets()), username)
                         else:
-                            rezervisi(max_karata)
+                            # rezervisi(max_karata)
                             update_vip_tickets_by_user(max_karata, username)
                         client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
                         print(f'{address} je rezervisao {max_karata} vip karte! Broj preostalih vip karata je {get_all_vip_tickets()}.')
@@ -114,13 +112,32 @@ def recieve_choice(client, address, username):
                     elif(get_all_vip_tickets()==0):
                         client.send(f'ANNNema slobodnih vip karata!'.encode(FORMAT))                      
                     else:
-                        rezervisi_vip(unos)
+                        # rezervisi_vip(unos)
                         update_vip_tickets_by_user(unos, username)
-                        max_karata -= int(unos)
+                        max_karata -= unos
                         print(f'{address} je rezervisao {unos} vip karte! Broj preostalih vip karata je {get_all_vip_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_vip_tickets()} vip karata!')
                 else:
                     client.send(f'ANNRezervisan je maksimalan broj karata!'.encode(FORMAT))
+
+            elif message[:8] == 'CANCEL_T':
+                unos = int(message[8:])
+                if ((max_karata >= 0 and max_karata < 4)):
+                    if (((4-max_karata)-unos)<=0):
+                        update_tickets_by_user(0, username)
+                        client.send(f'ANNOtkazan je maksimalan broj karata ({4-max_karata})!'.encode(FORMAT))
+                        print(f'{address} je otkazao {4-max_karata} karte! Broj preostalih karata je {get_all_tickets()}.')
+                        broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
+                        max_karata = 4                    
+                    else:
+                        max_karata += unos
+                        update_tickets_by_user(4-max_karata, username)
+                        print(f'{address} je otkazao {unos} karte! Broj preostalih karata je {get_all_tickets()}.')
+                        broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
+                else:
+                    client.send(f'ANNImate maksimalan broj karata!'.encode(FORMAT))
+
+
             elif message == 'IZLAZ':
                 print(f'{str(address)} se diskonektovao!')
                 client.close()

@@ -72,7 +72,6 @@ def update_vip_tickets_by_user(tickets, username):
     print(username+' reserved '+str(tickets)+' vip tickets!')
 
 def check_username(username):
-    print(username)
     try:
         mycursor.execute("SELECT username FROM users WHERE username=%s",(username,))
         if mycursor.fetchone() is None:

@@ -101,6 +101,19 @@ def meni():
                     print('Mozete unositi samo brojeve!')
             client.send((('VIP_RESERVE')+str(br)).encode(FORMAT))
             client.send('MAX_TICKETS'.encode(FORMAT))
+
+        elif choice.upper() == 'CANCEL TICKETS':
+            client.send('MAX_TICKETS'.encode(FORMAT))
+            print(f'Unesite broj karata koje zelite da otkazete (mozete rezervisati {(4-MAX_TICKETS)}):')
+            while True:
+                try:
+                    br = int(input())
+                    break
+                except:
+                    print('Mozete unositi samo brojeve!')
+            client.send((('CANCEL_T')+str(br)).encode(FORMAT))
+            client.send('MAX_TICKETS'.encode(FORMAT))
+
         elif choice.upper() == 'IZLAZ':
             RESET = False
             input()
