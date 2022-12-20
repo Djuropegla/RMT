@@ -70,8 +70,35 @@ def update_vip_tickets_by_user(tickets, username):
     mycursor.execute("UPDATE users SET vipTick=%s WHERE username=%s", (tickets, username))
     db.commit()
     print(username+' reserved '+str(tickets)+' vip tickets!')
+
+def check_username(username):
+    print(username)
+    try:
+        mycursor.execute("SELECT username FROM users WHERE username=%s",(username,))
+        if mycursor.fetchone() is None:
+            return True
+        else:
+            return False
+    except:
+        return True
+
+def check_password(username,password):
+    print(username)
+    print(password)
+    try:
+        mycursor.execute("SELECT username FROM users WHERE username=%s AND password=%s",(username,password,))
+        if mycursor.fetchone() is None:
+            return False
+        else:
+            return True
+    except:
+        return False
+
     
 # print_table()
+# username = 'dfhdssdsdh'
+# mycursor.execute("SELECT username FROM users WHERE username=%s",(username,))
+# print(type(mycursor.fetchone()))
 
 # get_all_tickets()
 

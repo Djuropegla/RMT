@@ -23,7 +23,7 @@ client.connect(('127.0.0.1', 9898))
 #             client.close()
 #             break
 
-def rezervacija():
+def reservation():
     global RESET
     while RESET:
         try:
@@ -51,18 +51,19 @@ def recieve():
         try:
             msg = client.recv(1024).decode(FORMAT)
 
-            if msg[:8] == 'GREETING':
-                print(msg[8:])
-            elif msg[:11] == 'MAX_TICKETS':
+            # if msg[:8] == 'GREETING':
+            #     print(msg[8:])
+            if msg[:11] == 'MAX_TICKETS':
                 MAX_TICKETS = int(msg[11:])
-            elif msg[:4] == 'LIST':
-                print(msg[4:])
-            elif msg[:7] == 'RESERVE':
-                print(msg[7:])
-            elif msg[:9] == 'BROADCAST':
-                print(msg[9:])
+            # elif msg[:4] == 'LIST':
+            #     print(msg[4:])
+            # elif msg[:7] == 'RESERVE':
+            #     print(msg[7:])
+            # elif msg[:9] == 'BROADCAST':
+            #     print(msg[9:])
             elif msg[:3] == 'ANN':
                 print(msg[3:])
+            
         except:
             print("Veza sa serverom je prekinuta")
             client.close()
@@ -107,38 +108,29 @@ def meni():
         else:
             print("Pogresan unos!")
 
-def auth_client():
+def register(client):
     global RESET
     auth_complete = False
-    # alive = True
-    # print(client.recv(1024).decode(FORMAT))
-    # alive = True
     while True:
         try:
             message_rcvd = client.recv(1024).decode(FORMAT)
             if message_rcvd[:3] == 'ANN':
                 print(message_rcvd[3:])
-            if message_rcvd[:8] == 'GREETING':
-                print(message_rcvd[8:])
-                while True:
-                    try:
-                        message = input().upper()
-                        message = message.rstrip()
-                        if message == 'REGISTER':
-                            client.send('REG'.encode(FORMAT))
-                            break
-                        else:
-                            print('Greska! Pokusajte ponovo:')
-                    except:
-                        print('KONEKCIJA PREKIINUTA')
-                        client.close()
+            # if message_rcvd[:8] == 'GREETING':
+            #     print(message_rcvd[8:])
+            #     while True:
+            #         try:
+            #             message = input().upper()
+            #             message = message.rstrip()
+            #             if message == 'REGISTER':
+            #                 client.send('REG'.encode(FORMAT))
+            #                 break
+            #             else:
+            #                 print('Greska! Pokusajte ponovo:')
+            #         except:
+            #             print('KONEKCIJA PREKIINUTA')
+            #             client.close()
 
-            # if message_rcvd[:10] == 'REG_U_NAME':
-            #     print(message_rcvd[10:])
-            #     message = input()
-            #     if ((len(message) > 0) and (len(message) < 20)):
-            #         client.send(('U_NAME'+message).encode(FORMAT))
-            
             if message_rcvd[:10] == 'REG_U_NAME':
                 print(message_rcvd[10:])
                 while True:
@@ -233,22 +225,8 @@ def auth_client():
                         client.close()
 
             if message_rcvd[:12] == 'AUTH_SUCCESS':
-                # print(message_rcvd[12:])
-                # print("EVE GA NA KRAJU")
                 auth_complete = True
                 break
-
-                # while alive:
-                #     message = input()
-                #     if ((len(message) > 0) and (len(message) < 20)):
-                #         client.send(('NAME'+message).encode(FORMAT))
-                #         alive = False
-                #     else:
-                #         print('Greska! Pokusajte ponovo: ')
-                #     alive = True
-            # if message == 'Izaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije':
-            #     unos = input()
-            #     client.send(unos.encode(FORMAT)) 
         except:
             print("Veza sa serverom je prekinuta")
             client.close()
@@ -260,12 +238,99 @@ def auth_client():
 
         recieve_thread.start()
         meni_thread.start()
+
+def login(client):
+    global RESET
+    complete = False
+    while True:
+        try:
+            message_rcvd = client.recv(1024).decode(FORMAT)
+            if message_rcvd[:3] == 'ANN':
+                print(message_rcvd[3:])
+
+            if message_rcvd[:12] == 'LOGIN_U_NAME':
+                print(message_rcvd[12:])
+                while True:
+                    try:
+                        message = input()
+                        if ((len(message) > 2) and (len(message) < 20)):
+                            client.send(('U_NAME'+message).encode(FORMAT))
+                            break
+                        else:
+                            print('Greska! Pokusajte ponovo:')
+                    except:
+                        print('KONEKCIJA PREKIINUTA')
+                        client.close()
             
+            if message_rcvd[:14] == 'LOGIN_PASSWORD':
+                print(message_rcvd[14:])
+                while True:
+                    try:
+                        message = input()
+                        if ((len(message) > 2) and (len(message) < 20)):
+                            client.send(('PASSWORD'+message).encode(FORMAT))
+                            break
+                        else:
+                            print('Greska! Pokusajte ponovo:')
+                    except:
+                        print('KONEKCIJA PREKIINUTA')
+                        client.close()
+            if message_rcvd[:12] == 'AUTH_SUCCESS':
+                complete = True
+                break
+        except:
+            print("Veza sa serverom je prekinuta")
+            client.close()
+            input()
+            break
+    if complete:
+        recieve_thread = threading.Thread(target=recieve)
+        meni_thread = threading.Thread(target=meni)
+
+        recieve_thread.start()
+        meni_thread.start()
+
+def init_recieve():
+    message_rcvd = client.recv(1024).decode(FORMAT)
+    print(message_rcvd)
+    
+    while True:
+        try:
+            message = input()
+            message = message.rstrip().lower()
+            if (message == 'login'):
+                break
+            elif (message == 'register'):
+                break
+            elif (message == 'izlaz'):
+                print("Veza sa serverom je prekinuta")
+                client.close()
+                input()
+                return
+            else:
+                print('Greska! Pokusajte ponovo: ')
+        except:
+            print("Veza sa serverom je prekinuta")
+            client.close()
+            input()
+            break
+    try:
+        if message == 'register':
+            client.send('REG'.encode(FORMAT))
+            register_thread = threading.Thread(target=register, args=(client,))
+            register_thread.start()
+        elif message == 'login':
+            client.send('LOGIN'.encode(FORMAT))
+            login_thread = threading.Thread(target=login, args=(client,))
+            login_thread.start()
+    except Exception as e:
+        print(e)
+        input()
 
 
 
 print("im client")
-auth_client()
+init_recieve()
 
 
 

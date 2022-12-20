@@ -51,7 +51,7 @@ def rezervisi_vip(br_karata):
     MAX_BROJ_VIP_KARATA = MAX_BROJ_VIP_KARATA - br_karata
 
 def broadcast(message):
-    msg = 'BROADCAST'+message
+    msg = 'ANN'+message
     for client in clients:
         client.send(msg.encode(FORMAT))
 
@@ -64,13 +64,13 @@ def broadcast(message):
 
 def recieve_choice(client, address, username):
     max_karata = 4 - get_tickets_by_user(username)
-    client.send('GREETINGIzaberite neku od opcija\nLIST - broj preostalih karata\nRESERVE - rezervisati kartu\nRESERVE VIP - rezervisati kartu\nIZLAZ - za izlaz iz aplikacije'.encode(FORMAT))
+    client.send('ANNIzaberite neku od opcija\nLIST - broj preostalih karata\nRESERVE - rezervisati kartu\nRESERVE VIP - rezervisati kartu\nIZLAZ - za izlaz iz aplikacije'.encode(FORMAT))
 
     try:
         while True:
             message = (client.recv(1024).decode(FORMAT)).upper()
             if message == 'LIST':
-                client.send(f'LISTPreostalo je jos {get_all_tickets()} slobodnih obicnih karata kao i {get_all_vip_tickets()} vip karata.'.encode(FORMAT))
+                client.send(f'ANNPreostalo je jos {get_all_tickets()} slobodnih obicnih karata kao i {get_all_vip_tickets()} vip karata.'.encode(FORMAT))
             elif message[:7] == 'RESERVE':
                 unos = int(message[7:])
                 if ((max_karata != 0) and ((get_all_tickets())> 0) and (get_all_tickets()) - unos >= 0):
@@ -158,13 +158,13 @@ def check_message(client,message,br_slova):
         return True
     return False
 
-def check_username(username_temp):
-    for username in username_list:
-        if username == username_temp:
-            return True
-    return False
+# def check_username(username_temp):
+#     for username in username_list:
+#         if username == username_temp:
+#             return True
+#     return False
         
-def auth(client, address):
+def register_new_user(client, address):
     username_temp = str()
     password_temp = str()
     ime_temp = str()
@@ -172,14 +172,16 @@ def auth(client, address):
     jmbg_temp = int()
     email_temp = str()
     auth_complete = False
-    client.send('GREETINGPovezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
+    # client.send('GREETINGPovezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
+    print('SUCCESS REG')
+    client.send('REG_U_NAMEUnesite Vase korisnicko ime:'.encode(FORMAT))
     while True:
         try:
             message_rcvd = client.recv(1024).decode(FORMAT)
 
-            if message_rcvd[:3] == 'REG':
-                print('SUCCESS REG')
-                client.send('REG_U_NAMEUnesite Vase korisnicko ime:'.encode(FORMAT))
+            # if message_rcvd[:3] == 'REG':
+            #     print('SUCCESS REG')
+            #     client.send('REG_U_NAMEUnesite Vase korisnicko ime:'.encode(FORMAT))
             
             if message_rcvd[:6] == 'U_NAME':
                 if check_message(client,message_rcvd,6):
@@ -241,13 +243,64 @@ def auth(client, address):
         recieve_thread = threading.Thread(target=recieve_choice, args=(client, address, username_temp))
         recieve_thread.start()
 
+def login_user(client, address):
+    username_temp = str()
+    complete = False
+    print('SUCCESS LOGIN')
+    client.send('LOGIN_U_NAMEUnesite Vase korisnicko ime:'.encode(FORMAT))
+    while True:
+        try:
+            message_rcvd = client.recv(1024).decode(FORMAT)
+            
+            if message_rcvd[:6] == 'U_NAME':
+                if check_message(client,message_rcvd,6):
+                    return
+                if not check_username(message_rcvd[6:]):
+                    print('SUCCESS U_NAME')
+                    username_temp = message_rcvd[6:]
+                    client.send('LOGIN_PASSWORDUnesite Vasu sifru:'.encode(FORMAT))
+                else:
+                    client.send('ANNIzabrali ste nepostojece korisnicko ime!'.encode(FORMAT))
+                    client.send('LOGIN_U_NAMEUnesite drugacije korisnicko ime:'.encode(FORMAT))
+
+            if message_rcvd[:8] == 'PASSWORD':
+                if check_message(client,message_rcvd,8):
+                    return
+                if check_password(username_temp, message_rcvd[8:]):
+                    print('SUCCESS PASSWORD')
+                    client.send('ANNUspesno ste se registrovali na server!'.encode(FORMAT))
+                    client.send('AUTH_SUCCESS'.encode(FORMAT))
+                    complete = True
+                    break
+                else:
+                    client.send('ANNPogresna sifra!'.encode(FORMAT))
+                    client.send('LOGIN_PASSWORDProbajte ponovo!'.encode(FORMAT))
+
+        except Exception as e:
+            print(e)
+            print(f'{str(address)} se diskonektovao!')
+            client.close()
+            return
+    if complete:
+        recieve_thread = threading.Thread(target=recieve_choice, args=(client, address, username_temp))
+        recieve_thread.start()
+
 def connection():
     while True:
         client, address = server.accept()
         clients.append(client)
         print(f'Uspjesno povezan sa {str(address)}')
-        auth_thread = threading.Thread(target=auth, args=(client, address))
-        auth_thread.start()
+        
+        client.send('Povezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
+        message_rcvd = client.recv(1024).decode(FORMAT)
+        if message_rcvd == 'REG':
+            register_thread = threading.Thread(target=register_new_user, args=(client, address))
+            register_thread.start()
+        elif message_rcvd == 'LOGIN':
+            login_thread = threading.Thread(target=login_user, args=(client, address))
+            login_thread.start()
+    
+
 
 print("Server is litening...")
 # registracija_thread = threading.Thread(target=registracija)
