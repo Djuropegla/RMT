@@ -76,6 +76,7 @@ def check_username(username):
     try:
         mycursor.execute("SELECT username FROM users WHERE username=%s",(username,))
         if mycursor.fetchone() is None:
+            print(type(mycursor.fetchone()))
             return True
         else:
             return False
@@ -83,8 +84,6 @@ def check_username(username):
         return True
 
 def check_password(username,password):
-    print(username)
-    print(password)
     try:
         mycursor.execute("SELECT username FROM users WHERE username=%s AND password=%s",(username,password,))
         if mycursor.fetchone() is None:

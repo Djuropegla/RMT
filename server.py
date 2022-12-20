@@ -186,7 +186,7 @@ def register_new_user(client, address):
             if message_rcvd[:6] == 'U_NAME':
                 if check_message(client,message_rcvd,6):
                     return
-                if check_username(message_rcvd[6:]):
+                if not check_username(message_rcvd[6:]):
                     client.send('ANNIzabrali ste postojece korisnicko ime!'.encode(FORMAT))
                     client.send('REG_U_NAMEUnesite drugacije korisnicko ime:'.encode(FORMAT))
                 else:
@@ -268,7 +268,7 @@ def login_user(client, address):
                     return
                 if check_password(username_temp, message_rcvd[8:]):
                     print('SUCCESS PASSWORD')
-                    client.send('ANNUspesno ste se registrovali na server!'.encode(FORMAT))
+                    client.send('ANNUspesno ste se prijavili na server!'.encode(FORMAT))
                     client.send('AUTH_SUCCESS'.encode(FORMAT))
                     complete = True
                     break
@@ -290,15 +290,19 @@ def connection():
         client, address = server.accept()
         clients.append(client)
         print(f'Uspjesno povezan sa {str(address)}')
-        
-        client.send('Povezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
-        message_rcvd = client.recv(1024).decode(FORMAT)
-        if message_rcvd == 'REG':
-            register_thread = threading.Thread(target=register_new_user, args=(client, address))
-            register_thread.start()
-        elif message_rcvd == 'LOGIN':
-            login_thread = threading.Thread(target=login_user, args=(client, address))
-            login_thread.start()
+        # client.send('Povezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
+        init_thread = threading.Thread(target=init, args=(client, address))
+        init_thread.start()
+
+def init(client,address):
+    client.send('Povezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
+    message_rcvd = client.recv(1024).decode(FORMAT)
+    if message_rcvd == 'REG':
+        register_thread = threading.Thread(target=register_new_user, args=(client, address))
+        register_thread.start()
+    elif message_rcvd == 'LOGIN':
+        login_thread = threading.Thread(target=login_user, args=(client, address))
+        login_thread.start()
     
 
 
