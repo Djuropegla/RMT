@@ -1,5 +1,4 @@
 import mysql.connector
-# from datetime import datetime
 
 db = mysql.connector.connect(
 host="localhost",
@@ -11,12 +10,6 @@ mycursor = db.cursor()
 
 MAX_BROJ_KARATA = 20
 MAX_BROJ_VIP_KARATA = 5
-
-# mycursor.execute("CREATE DATABASE ticket_reservations") ovu cu da koristim
-
-# mycursor.execute("DROP TABLE users")
-
-# mycursor.execute("CREATE TABLE users(username VARCHAR(20) PRIMARY KEY, password VARCHAR(20), name VARCHAR(20), lastname VARCHAR(20), jmbg VARCHAR(13), email VARCHAR(20), tickets SMALLINT UNSIGNED DEFAULT 0, vipTick SMALLINT UNSIGNED DEFAULT 0)")
 
 def insert_new_user(new_user):
     sql_query = "INSERT INTO users(username, password, name, lastname, jmbg, email, tickets, vipTick) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
@@ -77,6 +70,5 @@ def check_password(username,password):
             return True
     except:
         return False
-
     
 # print_table()
