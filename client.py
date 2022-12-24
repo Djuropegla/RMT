@@ -1,27 +1,15 @@
 import threading
 import socket
+from datetime import datetime
 
 FORMAT = 'utf-8'    
 RESET = True
 MAX_TICKETS = int()
 MAX_VIP_TICKETS = int()
+USERNAME = str()
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 9898))
-
-# def broadcast():
-#     print("IM ALIVE")
-#     while True:
-#         try:
-#             message = client.recv(1024).decode(FORMAT)
-#             if message == (message[:9]):
-#                 print(message[9:])
-#             else:
-#                 continue
-#         except:
-#             print("Connection was terminated!")
-#             client.close()
-#             break
 
 def reservation():
     global RESET
@@ -50,20 +38,18 @@ def recieve():
     while RESET:
         try:
             msg = client.recv(1024).decode(FORMAT)
-
-            # if msg[:8] == 'GREETING':
-            #     print(msg[8:])
             if msg[:11] == 'MAX_TICKETS':
                 MAX_TICKETS = int(msg[11:])
-            # elif msg[:4] == 'LIST':
-            #     print(msg[4:])
-            # elif msg[:7] == 'RESERVE':
-            #     print(msg[7:])
-            # elif msg[:9] == 'BROADCAST':
-            #     print(msg[9:])
             elif msg[:3] == 'ANN':
                 print(msg[3:])
-            
+            elif msg[:4] == 'FANN':
+                print(msg[4:])
+                date = datetime.now()
+                try:
+                    f = open(f'{USERNAME}_info.txt', "a")
+                    f.write(f'{msg[4:]} {date}\n')
+                finally:
+                    f.close()
         except:
             print("Veza sa serverom je prekinuta")
             client.close()
@@ -135,27 +121,13 @@ def meni():
 
 def register(client):
     global RESET
+    global USERNAME
     auth_complete = False
     while True:
         try:
             message_rcvd = client.recv(1024).decode(FORMAT)
             if message_rcvd[:3] == 'ANN':
                 print(message_rcvd[3:])
-            # if message_rcvd[:8] == 'GREETING':
-            #     print(message_rcvd[8:])
-            #     while True:
-            #         try:
-            #             message = input().upper()
-            #             message = message.rstrip()
-            #             if message == 'REGISTER':
-            #                 client.send('REG'.encode(FORMAT))
-            #                 break
-            #             else:
-            #                 print('Greska! Pokusajte ponovo:')
-            #         except:
-            #             print('KONEKCIJA PREKIINUTA')
-            #             client.close()
-
             if message_rcvd[:10] == 'REG_U_NAME':
                 print(message_rcvd[10:])
                 while True:
@@ -192,6 +164,7 @@ def register(client):
                         message = message.rstrip()
                         if ((len(message) > 2) and (len(message) < 20)):
                             client.send(('NAME'+message).encode(FORMAT))
+                            USERNAME = message
                             break
                         else:
                             print('Greska! Pokusajte ponovo:')
@@ -266,6 +239,7 @@ def register(client):
 
 def login(client):
     global RESET
+    global USERNAME
     complete = False
     while True:
         try:
@@ -280,6 +254,7 @@ def login(client):
                         message = input()
                         if ((len(message) > 2) and (len(message) < 20)):
                             client.send(('U_NAME'+message).encode(FORMAT))
+                            USERNAME = message
                             break
                         else:
                             print('Greska! Pokusajte ponovo:')
@@ -316,30 +291,25 @@ def login(client):
         meni_thread.start()
 
 def init_recieve():
-    message_rcvd = client.recv(1024).decode(FORMAT)
-    print(message_rcvd)
-    
-    while True:
-        try:
-            message = input()
-            message = message.rstrip().lower()
-            if (message == 'login'):
-                break
-            elif (message == 'register'):
-                break
-            elif (message == 'izlaz'):
-                print("Veza sa serverom je prekinuta")
-                client.close()
-                input()
-                return
-            else:
-                print('Greska! Pokusajte ponovo: ')
-        except:
-            print("Veza sa serverom je prekinuta")
-            client.close()
-            input()
-            break
     try:
+        message_rcvd = client.recv(1024).decode(FORMAT)
+        print(message_rcvd)
+        
+        while True:
+            # try:
+                message = input()
+                message = message.rstrip().lower()
+                if (message == 'login'):
+                    break
+                elif (message == 'register'):
+                    break
+                elif (message == 'izlaz'):
+                    print("Veza sa serverom je prekinuta")
+                    client.close()
+                    input()
+                    return
+                else:
+                    print('Greska! Pokusajte ponovo: ')
         if message == 'register':
             client.send('REG'.encode(FORMAT))
             register_thread = threading.Thread(target=register, args=(client,))
@@ -348,13 +318,12 @@ def init_recieve():
             client.send('LOGIN'.encode(FORMAT))
             login_thread = threading.Thread(target=login, args=(client,))
             login_thread.start()
-    except Exception as e:
-        print(e)
+    except:
+        print("Veza sa serverom je prekinuta")
+        client.close()
         input()
+        return
 
-
-
-print("im client")
 init_recieve()
 
 

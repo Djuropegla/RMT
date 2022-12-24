@@ -11,56 +11,12 @@ server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.bind((host, port))
 server.listen()
 
-
-
 clients = []
-
-username_list = []
-password_list = []
-ime_list = []
-prezime_list = []
-jmbg_list = []
-email_list = []
-username_list.append('nikola123')
-password_list.append('passnidzo')
-ime_list.append('Nikola')
-prezime_list.append('Nikolic')
-jmbg_list.append(1234)
-email_list.append('nikolanikolic@gmail.com')
-username_list.append('pavleggez')
-password_list.append('passpavle')
-ime_list.append('Pavle')
-prezime_list.append('Pavlovic')
-jmbg_list.append(4567)
-email_list.append('pavle.pavlovic8@gmail.com')
-username_list.append('alomilos')
-password_list.append('passmilos')
-ime_list.append('Milos')
-prezime_list.append('Milosevic')
-jmbg_list.append(3956)
-email_list.append('milos486@gmail.com')
-
-def rezervisi(br_karata):
-    br_karata = int(br_karata)
-    global MAX_BROJ_KARATA
-    MAX_BROJ_KARATA = MAX_BROJ_KARATA - br_karata
-
-def rezervisi_vip(br_karata):
-    br_karata = int(br_karata)
-    global MAX_BROJ_VIP_KARATA
-    MAX_BROJ_VIP_KARATA = MAX_BROJ_VIP_KARATA - br_karata
 
 def broadcast(message):
     msg = 'ANN'+message
     for client in clients:
         client.send(msg.encode(FORMAT))
-
-# def get_all_tickets():
-#     return int(MAX_BROJ_KARATA-get_all_tickets())
-
-# def get_all_vip_tickets():
-#     return MAX_BROJ_VIP_KARATA - get_all_vip_tickets()
-
 
 def recieve_choice(client, address, username):
     max_karata = 4 - get_tickets_by_user(username)
@@ -78,22 +34,21 @@ def recieve_choice(client, address, username):
                 elif ((max_karata != 0) and ((get_all_tickets())> 0) and (get_all_tickets()) - unos >= 0):
                     if ((max_karata-unos)<=0):
                         if(((get_all_tickets())-max_karata)<=0):
-                            # rezervisi(get_all_tickets())
                             update_tickets_by_user(get_all_tickets(), username)
                         else:
-                            # rezervisi(max_karata)
                             update_tickets_by_user(max_karata, username)
-                        client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
+                        time.sleep(0.2)
+                        client.send(f'FANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
                         print(f'{address} je rezervisao {max_karata} karte! Broj preostalih karata je {get_all_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
-                        time.sleep(0.2)
                         max_karata = 0
                     elif(get_all_tickets()==0):
                         client.send(f'ANNNema slobodnih karata!'.encode(FORMAT))                    
                     else:
-                        # rezervisi(unos)
                         update_tickets_by_user(unos, username)
                         max_karata -= unos
+                        time.sleep(0.2)
+                        client.send(f'FANNRezervisano je {unos} karata!'.encode(FORMAT))
                         print(f'{address} je rezervisao {unos} karte! Broj preostalih karata je {get_all_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
                 else:
@@ -103,21 +58,19 @@ def recieve_choice(client, address, username):
                 if ((max_karata != 0) and (((get_all_vip_tickets()) > 0) and ((get_all_vip_tickets()) - unos >= 0))):
                     if ((max_karata-unos)<=0):
                         if(((get_all_vip_tickets())-max_karata)<=0):
-                            # rezervisi((get_all_vip_tickets()))
                             update_vip_tickets_by_user((get_all_vip_tickets()), username)
                         else:
-                            # rezervisi(max_karata)
                             update_vip_tickets_by_user(max_karata, username)
-                        client.send(f'ANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
+                        client.send(f'FANNRezervisan je maksimalan broj preostalih karata koje ste mogli da rezervisete ({max_karata})!'.encode(FORMAT))
                         print(f'{address} je rezervisao {max_karata} vip karte! Broj preostalih vip karata je {get_all_vip_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_vip_tickets()} vip karata!')
                         max_karata = 0 
                     elif(get_all_vip_tickets()==0):
                         client.send(f'ANNNema slobodnih vip karata!'.encode(FORMAT))                      
                     else:
-                        # rezervisi_vip(unos)
                         update_vip_tickets_by_user(unos, username)
                         max_karata -= unos
+                        client.send(f'FANNRezervisano je {unos} vip karata!'.encode(FORMAT))
                         print(f'{address} je rezervisao {unos} vip karte! Broj preostalih vip karata je {get_all_vip_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_vip_tickets()} vip karata!')
                 else:
@@ -130,7 +83,7 @@ def recieve_choice(client, address, username):
                 elif ((max_karata >= 0 and max_karata < 4)):
                     if (((4-max_karata)-unos)<=0):
                         update_tickets_by_user(0, username)
-                        client.send(f'ANNOtkazan je maksimalan broj karata ({4-max_karata})!'.encode(FORMAT))
+                        client.send(f'FANNOtkazan je maksimalan broj karata ({4-max_karata})!'.encode(FORMAT))
                         time.sleep(0.2)
                         print(f'{address} je otkazao {4-max_karata} karte! Broj preostalih karata je {get_all_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
@@ -139,6 +92,7 @@ def recieve_choice(client, address, username):
                         max_karata += unos
                         update_tickets_by_user(4-max_karata, username)
                         time.sleep(0.2)
+                        client.send(f'FANNOtkazano je {unos} karata!'.encode(FORMAT))
                         print(f'{address} je otkazao {unos} karte! Broj preostalih karata je {get_all_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_tickets()} karata!')
     
@@ -149,7 +103,7 @@ def recieve_choice(client, address, username):
                 elif ((max_karata >= 0 and max_karata < 4)):
                     if (((4-max_karata)-unos)<=0):
                         update_vip_tickets_by_user(0, username)
-                        client.send(f'ANNOtkazan je maksimalan broj karata ({4-max_karata})!'.encode(FORMAT))
+                        client.send(f'FANNOtkazan je maksimalan broj karata ({4-max_karata})!'.encode(FORMAT))
                         time.sleep(0.2)
                         print(f'{address} je otkazao {4-max_karata} karte! Broj preostalih karata je {get_all_vip_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_vip_tickets()} vip karata!')
@@ -158,6 +112,7 @@ def recieve_choice(client, address, username):
                         max_karata += unos
                         update_vip_tickets_by_user(4-max_karata, username)
                         time.sleep(0.2)
+                        client.send(f'FANNOtkazano je {unos} vip karata!'.encode(FORMAT))
                         print(f'{address} je otkazao {unos} karte! Broj preostalih karata je {get_all_vip_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_vip_tickets()} karata!')
 
@@ -181,33 +136,13 @@ def recieve_choice(client, address, username):
         print(f'{str(address)} se diskonektovao!')
         client.close()
 
-def login_provjera(username, password):
-    result = False
-    for user in username_list:
-        if user == username:
-            result = True
-            break
-    if result == False:
-        return result
-    for passw in password_list:
-        if passw == password:
-            break
-        result = False
-    return result
-
 def check_message(client,message,br_slova):
     if len(message) <= br_slova:
         client.send('NEAUTORIZOVAN PRISTUP!'.encode(FORMAT))
         client.close()
         return True
     return False
-
-# def check_username(username_temp):
-#     for username in username_list:
-#         if username == username_temp:
-#             return True
-#     return False
-        
+    
 def register_new_user(client, address):
     username_temp = str()
     password_temp = str()
@@ -216,17 +151,11 @@ def register_new_user(client, address):
     jmbg_temp = int()
     email_temp = str()
     auth_complete = False
-    # client.send('GREETINGPovezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
     print('SUCCESS REG')
     client.send('REG_U_NAMEUnesite Vase korisnicko ime:'.encode(FORMAT))
     while True:
         try:
             message_rcvd = client.recv(1024).decode(FORMAT)
-
-            # if message_rcvd[:3] == 'REG':
-            #     print('SUCCESS REG')
-            #     client.send('REG_U_NAMEUnesite Vase korisnicko ime:'.encode(FORMAT))
-            
             if message_rcvd[:6] == 'U_NAME':
                 if check_message(client,message_rcvd,6):
                     return
@@ -334,25 +263,28 @@ def connection():
         client, address = server.accept()
         clients.append(client)
         print(f'Uspjesno povezan sa {str(address)}')
-        # client.send('Povezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
         init_thread = threading.Thread(target=init, args=(client, address))
         init_thread.start()
 
+
 def init(client,address):
-    client.send('Povezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
-    message_rcvd = client.recv(1024).decode(FORMAT)
-    if message_rcvd == 'REG':
-        register_thread = threading.Thread(target=register_new_user, args=(client, address))
-        register_thread.start()
-    elif message_rcvd == 'LOGIN':
-        login_thread = threading.Thread(target=login_user, args=(client, address))
-        login_thread.start()
+    try:
+        client.send('Povezani ste sa serverom!\nIzaberite neku od opcija\nlogin - za postojeci nalog\nregister - za registraciju\nizlaz - za izlaz iz aplikacije'.encode(FORMAT))
+        message_rcvd = client.recv(1024).decode(FORMAT)
+        if message_rcvd == 'REG':
+            register_thread = threading.Thread(target=register_new_user, args=(client, address))
+            register_thread.start()
+        elif message_rcvd == 'LOGIN':
+            login_thread = threading.Thread(target=login_user, args=(client, address))
+            login_thread.start()
+    except:
+        print(f'{str(address)} se diskonektovao!')
+        clients.remove(client)
+        client.close()
     
 
 
 print("Server is listening...")
-# registracija_thread = threading.Thread(target=registracija)
-# registracija_thread.start()
 connection()
 
 
