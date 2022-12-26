@@ -1,12 +1,15 @@
 import threading
 import socket
 from datetime import datetime
+import os
+
 
 FORMAT = 'utf-8'    
 RESET = True
 MAX_TICKETS = int()
 MAX_VIP_TICKETS = int()
 USERNAME = str()
+CUR_PATH = os.path.dirname(__file__)
 
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client.connect(('127.0.0.1', 9898))
@@ -46,7 +49,7 @@ def recieve():
                 print(msg[4:])
                 date = datetime.now()
                 try:
-                    f = open(f'{USERNAME}_info.txt', "a")
+                    f = open(f'client_info\\{USERNAME}_info.txt', "a")
                     f.write(f'{msg[4:]} {date}\n')
                 finally:
                     f.close()
@@ -94,7 +97,9 @@ def meni():
             while True:
                 try:
                     br = int(input())
-                    break
+                    if(br>=0):
+                        break
+                    print("Pogresan unos!")
                 except:
                     print('Mozete unositi samo brojeve!')
             client.send((('CANCEL_T')+str(br)).encode(FORMAT))
@@ -106,7 +111,9 @@ def meni():
             while True:
                 try:
                     br = int(input())
-                    break
+                    if(br>=0):
+                        break
+                    print("Pogresan unos!")
                 except:
                     print('Mozete unositi samo brojeve!')
             client.send((('CANCEL_V_T')+str(br)).encode(FORMAT))
@@ -213,7 +220,7 @@ def register(client):
                     try:
                         message = input()
                         message = message.rstrip()
-                        if ((len(message) > 2) and (len(message) < 20)):
+                        if ((len(message) > 2) and (len(message) < 30)):
                             client.send(('EMAIL'+message).encode(FORMAT))
                             break
                         else:

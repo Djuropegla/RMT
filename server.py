@@ -70,6 +70,7 @@ def recieve_choice(client, address, username):
                     else:
                         update_vip_tickets_by_user(unos, username)
                         max_karata -= unos
+                        time.sleep(0.2)
                         client.send(f'FANNRezervisano je {unos} vip karata!'.encode(FORMAT))
                         print(f'{address} je rezervisao {unos} vip karte! Broj preostalih vip karata je {get_all_vip_tickets()}.')
                         broadcast(f'Preostalo je jos {get_all_vip_tickets()} vip karata!')

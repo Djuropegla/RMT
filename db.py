@@ -11,6 +11,20 @@ mycursor = db.cursor()
 MAX_BROJ_KARATA = 20
 MAX_BROJ_VIP_KARATA = 5
 
+# mycursor.execute("DROP TABLE users")
+
+# mycursor.execute("SHOW SCHEMAS")
+# for x in mycursor:
+#     print(x)
+
+# mycursor.execute("CREATE TABLE users(username VARCHAR(20) PRIMARY KEY, password VARCHAR(20), name VARCHAR(20), lastname VARCHAR(20), jmbg VARCHAR(13), email VARCHAR(20), tickets SMALLINT UNSIGNED DEFAULT 0, vipTick SMALLINT UNSIGNED DEFAULT 0)")
+
+def reset_base(mycursor):
+    mycursor.execute("DROP TABLE users")
+
+    mycursor.execute("CREATE TABLE users(username VARCHAR(20) PRIMARY KEY, password VARCHAR(20), name VARCHAR(20), lastname VARCHAR(20), jmbg VARCHAR(13), email VARCHAR(20), tickets SMALLINT UNSIGNED DEFAULT 0, vipTick SMALLINT UNSIGNED DEFAULT 0)")
+
+
 def insert_new_user(new_user):
     sql_query = "INSERT INTO users(username, password, name, lastname, jmbg, email, tickets, vipTick) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
     mycursor.execute(sql_query, new_user)
@@ -71,4 +85,5 @@ def check_password(username,password):
     except:
         return False
     
+# reset_base(mycursor)
 # print_table()
